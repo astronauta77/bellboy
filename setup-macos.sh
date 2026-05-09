@@ -79,9 +79,23 @@ install_homebrew() {
     fi
 }
 
+# Add HashiCorp tap for Terraform and related tools
+setup_hashicorp_tap() {
+    print_step "Adding HashiCorp tap..."
+    if brew tap | grep -q "hashicorp/tap"; then
+        print_info "HashiCorp tap is already added"
+    else
+        brew tap hashicorp/tap
+        print_success "HashiCorp tap added"
+    fi
+}
+
 # Install DevOps CLI Tools (migrated from Linux setup.sh + requested tools)
 install_brew_packages() {
     print_header "Step 2: Installing DevOps CLI Tools"
+
+    # Add HashiCorp tap first for Terraform and related tools
+    setup_hashicorp_tap
 
     local packages=(
         # Core tools (from original Linux setup)
@@ -97,7 +111,6 @@ install_brew_packages() {
 
         # DevOps essentials (explicitly requested)
         "ansible"
-        "terraform"
         "kubectl"
         "helm"
         "awscli"
@@ -120,11 +133,7 @@ install_brew_packages() {
         "python"
         "node"
 
-        # Additional DevOps utilities (from pre-existing macOS workflow)
-        "vault"
-        "consul"
-        "nomad"
-        "packer"
+        # Additional utilities (from pre-existing macOS workflow)
         "direnv"
         "gnupg"
         "shellcheck"
@@ -138,6 +147,18 @@ install_brew_packages() {
             print_step "Installing $package..."
             brew install "$package"
             print_success "$package installed"
+        fi
+    done
+
+    # Install HashiCorp tools from tap (vault, consul, nomad, packer, terraform)
+    local hashicorp_tools=("terraform" "vault" "consul" "nomad" "packer")
+    for tool in "${hashicorp_tools[@]}"; do
+        if brew list "hashicorp/tap/$tool" &>/dev/null; then
+            print_info "$tool is already installed"
+        else
+            print_step "Installing $tool from hashicorp/tap..."
+            brew install hashicorp/tap/"$tool"
+            print_success "$tool installed"
         fi
     done
 
