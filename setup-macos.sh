@@ -77,6 +77,9 @@ install_homebrew() {
 
         print_success "Homebrew installed successfully"
     fi
+
+    # Ensure Homebrew is in PATH for this session
+    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
 }
 
 # Add HashiCorp tap for Terraform and related tools
@@ -93,9 +96,6 @@ setup_hashicorp_tap() {
 # Install DevOps CLI Tools (migrated from Linux setup.sh + requested tools)
 install_brew_packages() {
     print_header "Step 2: Installing DevOps CLI Tools"
-
-    # Add HashiCorp tap first for Terraform and related tools
-    setup_hashicorp_tap
 
     local packages=(
         # Core tools (from original Linux setup)
@@ -362,6 +362,7 @@ main() {
     # Execute installation steps
     install_xcode_cli_tools
     install_homebrew
+    setup_hashicorp_tap
     install_brew_packages
     install_cask_apps
     install_aws_vpn_client
