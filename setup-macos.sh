@@ -81,28 +81,11 @@ install_homebrew() {
         print_success "Homebrew installed successfully"
     fi
 
-    # Ensure Homebrew is in PATH for this session
-    # Try multiple possible locations
-    if [ -x "/opt/homebrew/bin/brew" ]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [ -x "/usr/local/bin/brew" ]; then
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
 }
 
 # Setup required Homebrew taps (HashiCorp and AWS)
 setup_brew_taps() {
     print_step "Setting up Homebrew taps..."
-
-    # Ensure brew is available in PATH
-    if ! command -v brew &> /dev/null; then
-        print_step "Initializing Homebrew environment..."
-        if [ -x "/opt/homebrew/bin/brew" ]; then
-            export PATH="/opt/homebrew/bin:$PATH"
-        elif [ -x "/usr/local/bin/brew" ]; then
-            export PATH="/usr/local/bin:$PATH"
-        fi
-    fi
 
     # Add HashiCorp tap
     if brew tap | grep -q "hashicorp/tap"; then
@@ -191,19 +174,21 @@ install_brew_packages() {
         fi
     done
 
-    # Install AWS tools from tap
-    local aws_tools=("eks-node-viewer")
-    for tool in "${aws_tools[@]}"; do
-        if brew list "aws/tap/$tool" &>/dev/null; then
-            print_info "$tool is already installed"
-        else
-            print_step "Installing $tool from aws/tap..."
-            brew install aws/tap/"$tool"
-            print_success "$tool installed"
-        fi
-    done
-
     print_success "All DevOps CLI tools installed"
+}
+
+# Install eks-node-viewer from AWS tap
+install_eks_node_viewer() {
+    print_header "Step 2b: Installing eks-node-viewer"
+
+    if brew list "aws/tap/eks-node-viewer" &>/dev/null; then
+        print_info "eks-node-viewer is already installed"
+        return 0
+    fi
+
+    print_step "Installing eks-node-viewer from aws/tap..."
+    brew install aws/tap/eks-node-viewer
+    print_success "eks-node-viewer installed"
 }
 
 # Install macOS GUI Applications via Homebrew Cask
@@ -405,6 +390,7 @@ main() {
     install_homebrew
     setup_brew_taps
     install_brew_packages
+    install_eks_node_viewer
     install_cask_apps
     install_aws_vpn_client
     setup_zsh
