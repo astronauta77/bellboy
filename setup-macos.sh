@@ -79,12 +79,28 @@ install_homebrew() {
     fi
 
     # Ensure Homebrew is in PATH for this session
-    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
+    # Try multiple possible locations
+    if [ -x "/opt/homebrew/bin/brew" ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x "/usr/local/bin/brew" ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
 }
 
 # Add HashiCorp tap for Terraform and related tools
 setup_hashicorp_tap() {
     print_step "Adding HashiCorp tap..."
+
+    # Ensure brew is available in PATH
+    if ! command -v brew &> /dev/null; then
+        print_step "Initializing Homebrew environment..."
+        if [ -x "/opt/homebrew/bin/brew" ]; then
+            export PATH="/opt/homebrew/bin:$PATH"
+        elif [ -x "/usr/local/bin/brew" ]; then
+            export PATH="/usr/local/bin:$PATH"
+        fi
+    fi
+
     if brew tap | grep -q "hashicorp/tap"; then
         print_info "HashiCorp tap is already added"
     else
