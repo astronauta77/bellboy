@@ -9,6 +9,9 @@
 
 set -euo pipefail
 
+# Suppress Homebrew hints
+export HOMEBREW_NO_ENV_HINTS=1
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -87,9 +90,9 @@ install_homebrew() {
     fi
 }
 
-# Add HashiCorp tap for Terraform and related tools
-setup_hashicorp_tap() {
-    print_step "Adding HashiCorp tap..."
+# Setup required Homebrew taps (HashiCorp and AWS)
+setup_brew_taps() {
+    print_step "Setting up Homebrew taps..."
 
     # Ensure brew is available in PATH
     if ! command -v brew &> /dev/null; then
@@ -101,11 +104,22 @@ setup_hashicorp_tap() {
         fi
     fi
 
+    # Add HashiCorp tap
     if brew tap | grep -q "hashicorp/tap"; then
         print_info "HashiCorp tap is already added"
     else
+        print_step "Adding HashiCorp tap..."
         brew tap hashicorp/tap
         print_success "HashiCorp tap added"
+    fi
+
+    # Add AWS tap
+    if brew tap | grep -q "aws/tap"; then
+        print_info "AWS tap is already added"
+    else
+        print_step "Adding AWS tap..."
+        brew tap aws/tap
+        print_success "AWS tap added"
     fi
 }
 
@@ -134,7 +148,6 @@ install_brew_packages() {
 
         # Kubernetes utilities (migrated from Linux)
         "k9s"
-        "eks-node-viewer"
 
         # Containers
         "docker"
@@ -174,6 +187,18 @@ install_brew_packages() {
         else
             print_step "Installing $tool from hashicorp/tap..."
             brew install hashicorp/tap/"$tool"
+            print_success "$tool installed"
+        fi
+    done
+
+    # Install AWS tools from tap
+    local aws_tools=("eks-node-viewer")
+    for tool in "${aws_tools[@]}"; do
+        if brew list "aws/tap/$tool" &>/dev/null; then
+            print_info "$tool is already installed"
+        else
+            print_step "Installing $tool from aws/tap..."
+            brew install aws/tap/"$tool"
             print_success "$tool installed"
         fi
     done
@@ -378,7 +403,7 @@ main() {
     # Execute installation steps
     install_xcode_cli_tools
     install_homebrew
-    setup_hashicorp_tap
+    setup_brew_taps
     install_brew_packages
     install_cask_apps
     install_aws_vpn_client
