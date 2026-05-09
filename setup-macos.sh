@@ -199,10 +199,9 @@ install_cask_apps() {
         "iterm2"
         "visual-studio-code"
         # "docker"  # Already installed manually - skip to avoid conflicts
-        "slack"
         "notion"
         "postman"
-        "sequel-pro"
+        "sequel-ace"
         "dbeaver-community"
         "microsoft-teams"
     )
