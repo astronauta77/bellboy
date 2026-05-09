@@ -198,7 +198,7 @@ install_cask_apps() {
     local apps=(
         "iterm2"
         "visual-studio-code"
-        "docker"
+        # "docker"  # Already installed manually - skip to avoid conflicts
         "slack"
         "notion"
         "postman"
